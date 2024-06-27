@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { generateClient } from "aws-amplify/data";
 import type { Schema } from "@/amplify/data/resource";
 import "./../app/app.css";
@@ -26,9 +26,9 @@ Amplify.configure(outputs);
 const client = generateClient<Schema>();
 
 export default function App() {
-  const [selectedRole, setSelectedRole] = useState<"WORKER" | "BOSS">("WORKER");
   const [todos, setTodos] = useState<Array<Schema["Todo"]["type"]>>([]);
   const [currentUser, setCurrentUser] = useState<AuthUser>();
+  const selectedRoleRef =  useRef<any>(null);
 
   const fetchUser = async () => {
     try {
@@ -71,7 +71,6 @@ export default function App() {
   function deleteTodo(id: string) {
     client.models.Todo.delete({ id });
   }
-
   return (
     <Authenticator
       components={{
@@ -85,11 +84,14 @@ export default function App() {
                 {/* Append & require Terms and Conditions field to sign up  */}
                 <SelectField
                   label="role"
-                  value={selectedRole}
-                  onChange={(e) =>
-                    setSelectedRole(e.target.value as "WORKER" | "BOSS")
-                  }
+                  // value={selectedRole}
+                  // onChange={(e) =>
+                  //   {
+                  //     setSelectedRole(e.target.value as "WORKER" | "BOSS")
+                  //   }
+                  // }
                   options={["BOSS", "WORKER"]}
+                  ref={selectedRoleRef}
                 />
               </>
             );
@@ -109,7 +111,7 @@ export default function App() {
               userAttributes: {
                 ...input.options?.userAttributes,
                 email: customEmail,
-                "custom:group": selectedRole,
+                "custom:group": selectedRoleRef.current?.value,
               },
             },
           });
